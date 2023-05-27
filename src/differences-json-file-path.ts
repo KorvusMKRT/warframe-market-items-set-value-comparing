@@ -1,0 +1,1 @@
+export const DIFFERENCES_JSON_FILE_PATH = 'differences.json'

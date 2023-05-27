@@ -5,7 +5,10 @@ import { FullItemApiPayload } from "./full-item-api-response";
 import { ItemsPayload } from "./item_api_response";
 import { OrdersPayload } from "./order-payload";
 import { getCheapestPrice } from "./get-cheapest-price";
-const fs = require('fs');
+import fsExtra from 'fs-extra';
+import fs from 'fs';
+import { DIFFERENCES_JSON_FILE_PATH } from "./differences-json-file-path";
+import { url } from "inspector";
 main();
 async function main() {
     const { default: delay } = await import("delay");
@@ -53,22 +56,29 @@ async function main() {
         return itemsInSet
     })
 
-    // fs.writeFileSync('./itemsFull.txt', JSON.stringify(setItemArray));
+    // ;
     // console.log(Object.keys(setItemArray[0].items_in_set[0]));
 
+    if (!fsExtra.pathExistsSync(DIFFERENCES_JSON_FILE_PATH)) {
+        fsExtra.writeFileSync(DIFFERENCES_JSON_FILE_PATH, '{}', { encoding: "utf-8" });
+    }
+
     for (const itemsInSet of itemsInSetArray) {
+        let differencesJson = fsExtra.readJSONSync(DIFFERENCES_JSON_FILE_PATH);
         const setItem = itemsInSet.find((item) => item.url_name.endsWith('set'));
+        if (Object.keys(differencesJson).includes(setItem!.url_name)) continue;
         let cheapestSetOrder = await getCheapestPrice(setItem!.url_name)
         let subItems = itemsInSet.filter((item) => item != setItem);
         let cheapestSubItemOrder = await Promise.all(
-            subItems.map(async (subItem , index) => {
-                await delay ( (1000/3) * index);
-                return await getCheapestPrice (subItem!.url_name);
+            subItems.map(async (subItem, index) => {
+                await delay((1000 / 3) * index);
+                return await getCheapestPrice(subItem!.url_name);
             })
         );
-        let subItemsPriceSum = cheapestSubItemOrder.reduce((accumulator, curentValue) => accumulator + curentValue , 0);
+        let subItemsPriceSum = cheapestSubItemOrder.reduce((accumulator, curentValue) => accumulator + curentValue, 0);
         let difference = cheapestSetOrder - subItemsPriceSum;
-        console.log(difference , setItem?.url_name);
+        differencesJson[setItem!.url_name] = difference;
+        fsExtra.writeFileSync(DIFFERENCES_JSON_FILE_PATH, JSON.stringify(differencesJson, null, 2));
     };
 
 
