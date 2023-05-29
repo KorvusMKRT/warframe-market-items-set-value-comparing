@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "declaration": true,
     "target": "es2022",                                  
     "module": "Node16",                             
     "esModuleInterop": true,                            
