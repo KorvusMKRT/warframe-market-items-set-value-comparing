@@ -1,7 +1,7 @@
 {
   "name": "warframe-market-items-set-value-comparing",
   "version": "1.0.0",
-  "description": "",
+  "description": "Provides the difference in price between the set and individual components",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
   "files": [
